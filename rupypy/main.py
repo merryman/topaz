@@ -35,6 +35,7 @@ def entry_point(argv):
                 idx += 1
                 argv_w.append(space.newstr_fromstr(arg))
     space.set_const(space.getclassfor(W_Object), "ARGV", space.newarray(argv_w))
+    space.set_const(space.getclassfor(W_Object), "RUBY_ENGINE", space.newstr_fromstr("topaz"))
 
     if verbose:
         system, _, _, _, cpu = os.uname()
