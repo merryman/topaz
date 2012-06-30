@@ -25,3 +25,9 @@ class Coerce(object):
         if w_obj is space.w_nil:
             return None
         return space.str_w(w_obj)
+
+    @staticmethod
+    def array(space, w_obj):
+        if w_obj is space.w_nil:
+            return None
+        return space.listview(w_obj)
