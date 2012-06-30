@@ -275,3 +275,11 @@ class W_ModuleObject(W_RootObject):
         space.raise_(space.getclassfor(W_NameError),
              "uninitialized constant %s" % name
         )
+
+    @classdef.method("const_defined?", const="str")
+    def method_const_definedp(self, space, const):
+        return space.newbool(const in self.constants_w)
+
+    @classdef.method("method_defined?", name="str")
+    def method_method_definedp(self, space, name):
+        return space.newbool(self.find_method(space, name) is not None)
