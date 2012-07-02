@@ -92,6 +92,29 @@ class W_ArrayObject(W_Object):
             self.items_w.insert(0, w_obj)
         return self
 
+    @classdef.method("pop")
+    def method_pop(self, space, w_length=None):
+        if not self.items_w:
+            return space.w_nil
+        elif w_length is None:
+            return self.items_w.pop()
+        else:
+            length = space.int_w(w_length)
+            res = []
+            for i in xrange(0, length):
+                res.append(self.items_w.pop())
+            res.reverse()
+            return space.newarray(res)
+
+    @classdef.method("shift")
+    def method_shift(self, space, w_length=None):
+        if not self.items_w:
+            return space.w_nil
+        elif w_length is None:
+            return self.items_w.pop(0)
+        else:
+            raise NotImplementedError
+
     @classdef.method("join")
     def method_join(self, space, w_sep=None):
         if not self.items_w:
@@ -146,3 +169,16 @@ class W_ArrayObject(W_Object):
         result
     end
     """)
+
+    @classdef.method("dup")
+    def method_dup(self, space):
+        return space.newarray(self.items_w + [])
+
+    @classdef.method("concat", other="array")
+    def method_concat(self, other):
+        self.items_w += other
+        return self
+
+    @classdef.method("empty?")
+    def method_emptyp(self, space):
+        return space.newbool(len(self.items_w) == 0)

@@ -46,6 +46,17 @@ class Enumerable(Module):
     """)
 
     moduledef.app_method("""
+    def detect(&block)
+      self.each do |o|
+        if block.call(o)
+          return o
+        end
+      end
+    end
+    alias find detect
+    """)
+
+    moduledef.app_method("""
     def include?(obj)
       self.each do |o|
         return true if o == obj
@@ -70,5 +81,14 @@ class Enumerable(Module):
             result << i
         end
         result
+    end
+    """)
+
+    moduledef.app_method("""
+    def any?(&block)
+        self.each do |i|
+            return true if yield i
+        end
+        return false
     end
     """)

@@ -98,6 +98,9 @@ class W_RootObject(W_BaseObject):
     def method_eqeqeq(self, space, w_other):
         return space.send(self, space.newsymbol("=="), [w_other])
 
+    @classdef.method("hash")
+    def method_hash(self, space):
+        return space.newint(space.int_w(self.method___id__(space)).__hash__())
 
     @classdef.method("send")
     def method_send(self, space, args_w, block):

@@ -176,3 +176,35 @@ class W_StringObject(W_Object):
         self.strategy.to_mutable(space, self)
         self.strategy.clear(self)
         return self
+
+    @classdef.method("[]", idx="int")
+    def method_subscript(self, space, idx):
+        if idx >= self.length():
+            return space.w_nil
+        return space.newstr_fromstr(space.str_w(self)[idx])
+
+    @classdef.method("dup")
+    def method_subscript(self, space):
+        return space.newstr_fromstr(space.str_w(self))
+
+    @classdef.method("ljust", length="int", string="str")
+    def method_ljust(self, space, length, string=None):
+        if string is None:
+            string = " "
+        return space.newstr_fromstr(space.str_w(self).ljust(length, string))
+
+    @classdef.method("split")
+    def method_split(self, space, w_sep=None, w_limit=None):
+        # THIS IS WRONG!
+        if w_sep is None:
+            sep = None
+        elif isinstance(w_sep, W_StringObject):
+            sep = space.str_w(w_sep)
+        else:
+            # WROOOOONG
+            sep = None
+        if w_limit is None:
+            results = space.str_w(self).split(sep)
+        else:
+            results = space.str_w(self).split(sep, space.int_w(w_limit))
+        return space.newarray([space.newstr_fromstr(s) for s in results])

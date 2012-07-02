@@ -114,6 +114,8 @@ class Frame(BaseFrame):
         return self.bytecode.filepath
 
     def get_lineno(self, idx):
+        if idx > len(self.bytecode.lineno_table):
+            idx = len(self.bytecode.lineno_table) - 1
         return self.bytecode.lineno_table[idx]
 
     def get_code_name(self):

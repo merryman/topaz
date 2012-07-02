@@ -118,6 +118,10 @@ class Kernel(Module):
 
         raise RubyError(w_exc)
 
+    @moduledef.method("block_given?")
+    def method_block_givenp(self, space):
+        return space.w_false
+
     @moduledef.method("Array")
     def method_Array(self, space, w_arg):
         if space.respond_to(w_arg, space.newsymbol("to_ary")):
