@@ -106,6 +106,11 @@ class W_RootObject(W_BaseObject):
     def method_send(self, space, args_w, block):
         return space.send(self, space.newsymbol("__send__"), args_w, block)
 
+    @classdef.method("=~")
+    def method_match(self, space):
+        return space.w_nil
+
+
 class W_Object(W_RootObject):
     def __init__(self, space, klass=None):
         if klass is None:
