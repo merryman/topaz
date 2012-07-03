@@ -64,3 +64,20 @@ class W_FileObject(W_IOObject):
         if not items:
             return space.newstr_fromstr("/")
         return space.newstr_fromstr("/" + "/".join(items))
+
+    @classdef.singleton_method("join")
+    def method_join(self, space, args_w):
+        args = [space.str_w(w_s) for w_s in args_w]
+        return space.newstr_fromstr(os.path.join(*args))
+
+    @classdef.singleton_method("exists?", filename="str")
+    def method_existsp(self, space, filename):
+        return space.newbool(os.path.isfile(filename))
+
+    @classdef.singleton_method("exist?", filename="str")
+    def method_existp(self, space, filename):
+        return space.newbool(os.path.isfile(filename))
+
+    @classdef.singleton_method("executable?", filename="str")
+    def method_executablep(self, space, filename):
+        return space.newbool(os.path.isfile(filename) and os.access(filename, os.X_OK))

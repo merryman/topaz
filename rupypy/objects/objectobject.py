@@ -72,6 +72,7 @@ class W_BaseObject(object):
     def method_send(self, space, method, args_w, block):
         return space.send(self, space.newsymbol(method), args_w[1:], block)
 
+
 class W_RootObject(W_BaseObject):
     classdef = ClassDef("Object", W_BaseObject.classdef)
 
