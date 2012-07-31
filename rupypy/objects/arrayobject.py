@@ -142,6 +142,20 @@ class W_ArrayObject(W_Object):
         w_args.append(w_count)
         return space.send(self, space.newsymbol("slice!"), w_args)
 
+    @classdef.method("shift")
+    def method_shift(self, space, w_count=None):
+        if not w_count:
+            if len(self.items_w) == 0:
+                return space.w_nil
+            w_item = self.items_w[0]
+            del self.items_w[0]
+            return w_item
+        else:
+            count = space.int_w(w_count)
+            if count < 0:
+                return space.raise_(space.getclassfor(W_ArgumentError), "negative array size")
+            return space.send(self, space.newsymbol("slice!"), [space.newint(0), w_count])
+
     @classdef.method("slice!")
     def method_slice_bang(self, space, w_idx, w_count=None):
         start, end, as_range = space.subscript_access(len(self.items_w), w_idx, w_count=w_count)

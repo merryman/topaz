@@ -196,3 +196,15 @@ class TestArrayObject(BaseRuPyPyTest):
         assert self.unwrap(space, w_res) == ["d", ["b", "c"], ["a"]]
         with self.raises(space, "ArgumentError", "negative array size"):
             space.execute("[1, 2, 3].pop(-1)")
+
+    def test_shift(self, space):
+        w_res = space.execute("""
+        a = [ "a", "b", "c", "d" ]
+        r = []
+        r << a.shift
+        r << a.shift(2)
+        return r << a
+        """)
+        assert self.unwrap(space, w_res) == ["a", ["b", "c"], ["d"]]
+        with self.raises(space, "ArgumentError", "negative array size"):
+            space.execute("[1, 2, 3].shift(-1)")
