@@ -2,7 +2,7 @@ from rupypy.module import ClassDef
 from rupypy.modules.enumerable import Enumerable
 from rupypy.objects.objectobject import W_Object
 from rupypy.objects.rangeobject import W_RangeObject
-from rupypy.objects.exceptionobject import W_TypeError, W_IndexError
+from rupypy.objects.exceptionobject import W_TypeError, W_IndexError, W_ArgumentError
 
 
 class W_ArrayObject(W_Object):
@@ -30,6 +30,7 @@ class W_ArrayObject(W_Object):
     end
     """)
 
+    @classdef.method("slice")
     @classdef.method("[]")
     def method_subscript(self, space, w_idx, w_count=None):
         start, end, as_range = space.subscript_access(len(self.items_w), w_idx, w_count=w_count)
@@ -127,6 +128,35 @@ class W_ArrayObject(W_Object):
     @classdef.method("dup")
     def method_dup(self, space):
         return space.newarray(self.items_w[:])
+
+    @classdef.method("pop")
+    def method_pop(self, space, w_count=None):
+        w_args = []
+        if w_count:
+            count = space.int_w(w_count)
+            if count < 0:
+                return space.raise_(space.getclassfor(W_ArgumentError), "negative array size")
+            w_args.append(space.newint(-count))
+        else:
+            w_count = space.newint(-1)
+        w_args.append(w_count)
+        return space.send(self, space.newsymbol("slice!"), w_args)
+
+    @classdef.method("slice!")
+    def method_slice_bang(self, space, w_idx, w_count=None):
+        start, end, as_range = space.subscript_access(len(self.items_w), w_idx, w_count=w_count)
+        if (as_range and end < start or
+            start < 0 or end < 0 or
+            not as_range and start >= len(self.items_w)):
+            return space.w_nil
+        elif as_range:
+            removed_items = self.items_w[start:end]
+            self.items_w = self.items_w[:start] + self.items_w[end:]
+            return space.newarray(removed_items)
+        else:
+            removed_item = self.items_w[start]
+            del self.items_w[start]
+            return removed_item
 
     classdef.app_method("""
     def at idx

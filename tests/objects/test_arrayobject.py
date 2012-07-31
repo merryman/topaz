@@ -165,3 +165,34 @@ class TestArrayObject(BaseRuPyPyTest):
         x, y = self.unwrap(space, w_res)
         assert x == [1, 2, 3, 4]
         assert y == [1, 2, 3]
+
+    def test_slice_bang(self, space):
+        w_res = space.execute("""
+        a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        r = []
+        r << a.slice!(1)     # 2
+        r << a.slice!(-1)    # 10
+        r << a.slice!(1, 2)  # [3, 4]
+        r << a.slice!(1..3)  # [5, 6, 7]
+        r << a.slice!(3)     # nil
+        r << a.slice!(3, 1)  # []
+        r << a.slice!(3..10) # []
+        r << a.slice!(4, 1)  # nil
+        r << a.slice!(4..10) # nil
+        r << a.slice!(-2, 2) # [8, 9]
+        r << a               # [1]
+        return r
+        """)
+        assert self.unwrap(space, w_res) == [2, 10, [3, 4], [5, 6, 7], None, [], [], None, None, [8, 9], [1]]
+
+    def test_pop(self, space):
+        w_res = space.execute("""
+        a = [ "a", "b", "c", "d" ]
+        r = []
+        r << a.pop
+        r << a.pop(2)
+        return r << a
+        """)
+        assert self.unwrap(space, w_res) == ["d", ["b", "c"], ["a"]]
+        with self.raises(space, "ArgumentError", "negative array size"):
+            space.execute("[1, 2, 3].pop(-1)")
