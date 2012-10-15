@@ -110,14 +110,13 @@ class W_ModuleObject(W_RootObject):
 
     def find_const(self, space, name):
         w_res = self.find_local_const(space, name)
+        if w_res is None:
+            for w_mod in self.included_modules:
+                w_res = w_mod.find_local_const(space, name)
+                if w_res:
+                    break
         if w_res is None and self.superclass is not None:
-            w_res = self.superclass.find_inherited_const(space, name)
-        return w_res
-
-    def find_inherited_const(self, space, name):
-        w_res = self.find_local_const(space, name)
-        if w_res is None and self.superclass is not None:
-            w_res = self.superclass.find_inherited_const(space, name)
+            w_res = self.superclass.find_const(space, name)
         return w_res
 
     def find_local_const(self, space, name):
@@ -306,9 +305,9 @@ class W_ModuleObject(W_RootObject):
     @classdef.method("const_defined?", const="str", inherit="bool")
     def method_const_definedp(self, space, const, inherit=True):
         if inherit:
-            return space.newbool(self.find_inherited_const(space, const) is not None)
+            return space.newbool(self.find_const(space, const) is not None)
         else:
-            return space.newbool(self._find_const_pure(const, self.version) is not None)
+            return space.newbool(self.find_local_const(space, const) is not None)
 
     @classdef.method("method_defined?", name="str")
     def method_method_definedp(self, space, name):
