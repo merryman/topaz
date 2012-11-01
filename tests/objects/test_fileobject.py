@@ -1,5 +1,8 @@
 import os
 import stat
+import sys
+
+import py
 
 from rupypy.objects.fileobject import W_FileObject, W_IOObject
 
@@ -178,6 +181,48 @@ class TestFile(BaseRuPyPyTest):
         assert self.unwrap(space, w_res) is True
         w_res = space.execute("return File.directory?('%s')" % str(tmpdir.join("t.rb")))
         assert self.unwrap(space, w_res) is False
+
+    def test_basename(self, space, tmpdir):
+        f = tmpdir.join("test.rb")
+        f.write("")
+        if sys.platform == "win32":
+            w_res = space.execute("return File.basename('%s')" % str(f))
+            assert space.str_w(w_res) == str(f)
+            unixpath = str(f).replace("\\", "/")
+            w_res = space.execute("return File.basename('%s')" % unixpath)
+            assert space.str_w(w_res) == "test.rb"
+        else:
+            w_res = space.execute("return File.basename('%s')" % str(f))
+            assert space.str_w(w_res) == "test.rb"
+            unixpath = str(f)
+        w_res = space.execute("return File.basename('%s', '.rb')" % unixpath)
+        assert space.str_w(w_res) == "test"
+        w_res = space.execute("return File.basename('%s', 'b')" % unixpath)
+        assert space.str_w(w_res) == "test.r"
+        w_res = space.execute("return File.basename('%s', '.foo')" % unixpath)
+        assert space.str_w(w_res) == "test.rb"
+
+    def test_open(self, space, tmpdir):
+        contents = "foo\nbar\nbaz\n"
+        f = tmpdir.join("file.txt")
+        f.write(contents)
+        w_res = space.execute("return File.open('%s')" % str(f))
+        assert isinstance(w_res, W_FileObject)
+        w_res = space.execute("return File.open('%s') { |f| f.read }" % str(f))
+        assert space.str_w(w_res) == contents
+
+    def test_close(self, space, tmpdir):
+        contents = "foo\nbar\nbaz\n"
+        f = tmpdir.join("file.txt")
+        f.write(contents)
+        w_res = space.execute("""
+        f = File.open('%s')
+        f.close
+        return f
+        """ % str(f))
+        assert isinstance(w_res, W_FileObject)
+        with py.test.raises(OSError):
+            os.fstat(w_res.fd)
 
 
 class TestExpandPath(BaseRuPyPyTest):

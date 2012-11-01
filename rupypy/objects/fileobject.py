@@ -287,3 +287,33 @@ class W_FileObject(W_IOObject):
     @classdef.singleton_method("executable?", filename="str")
     def method_executablep(self, space, filename):
         return space.newbool(os.path.isfile(filename) and os.access(filename, os.X_OK))
+
+    @classdef.singleton_method("basename", filename="str")
+    def method_basename(self, space, filename, w_suffix=None):
+        basename = filename.rsplit("/", 1)[-1]
+        if w_suffix:
+            assert isinstance(w_suffix, W_StringObject)
+            suffix = space.str_w(w_suffix)
+            basename = basename.rstrip(suffix)
+        return space.newstr_fromstr(basename)
+
+    classdef.app_method("""
+    def self.open(filename, *args)
+        file = self.new(filename, *args)
+        if block_given?
+            begin
+                result = yield file
+            ensure
+                file.close
+            end
+            result
+        else
+            file
+        end
+    end
+    """)
+
+    @classdef.method("close")
+    def method_close(self, space):
+        os.close(self.fd)
+        return space.w_nil
