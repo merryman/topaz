@@ -225,7 +225,8 @@ class ObjectSpace(object):
         try:
             return parser.parse().getast()
         except ParsingError as e:
-            raise self.error(self.w_SyntaxError, "line %d" % e.getsourcepos().lineno)
+            sourcepos = e.getsourcepos()
+            raise self.error(self.w_SyntaxError, "line %d" % sourcepos.lineno if sourcepos else -1)
         except LexerError as e:
             raise self.error(self.w_SyntaxError, "line %d" % e.pos.lineno)
 

@@ -2038,7 +2038,7 @@ class Parser(object):
                     $$ = support.new_args($1.getPosition(), null, null, null, null, $1);
                 }
         """
-        raise NotImplementedError(p)
+        raise self.error("NotImplementedError: block_param_f_block_arg")
 
     @pg.production("opt_block_param : none")
     def opt_block_param_none(self, p):
