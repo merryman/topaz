@@ -2796,7 +2796,7 @@ class Parser(object):
                     $$ = new OptArgNode($1.getPosition(), support.assignable($1, $3));
                 }
         """
-        raise NotImplementedError(p)
+        raise self.error("NotImplementedError: f_block_opt")
 
     @pg.production("f_block_optarg : f_block_opt")
     def f_block_optarg_f_block_opt(self, p):
