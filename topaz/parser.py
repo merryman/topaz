@@ -1817,7 +1817,8 @@ class Parser(object):
                      $$ = support.assignable($1, NilImplicitNode.NIL);
                 }
         """
-        raise NotImplementedError(p)
+        raise self.error("Not implemented: destructuring block arguments")
+        return self.assignable(p[0])
 
     @pg.production("f_marg : LPAREN f_margs rparen")
     def f_marg_paren(self, p):
