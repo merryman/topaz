@@ -1,0 +1,1 @@
+fails:SystemExit#success? returns false when the status is not 0
