@@ -1,6 +1,7 @@
 import os
 import sys
 
+from topaz.error import error_for_oserror
 from topaz.module import ClassDef
 from topaz.objects.arrayobject import W_ArrayObject
 from topaz.objects.hashobject import W_HashObject
@@ -280,7 +281,10 @@ class W_FileObject(W_IOObject):
             mode = space.int_w(w_mode)
         if w_perm_or_opt is not space.w_nil or w_opt is not space.w_nil:
             raise NotImplementedError("options hash or permissions for File.new")
-        self.fd = os.open(filename, mode, perm)
+        try:
+            self.fd = os.open(filename, mode, perm)
+        except OSError as e:
+            raise error_for_oserror(space, e)
         return self
 
     @classdef.singleton_method("dirname", path="path")
