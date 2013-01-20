@@ -112,3 +112,11 @@ class W_Dir(W_Object):
         closedir(self.dirp)
         self.open = False
         return space.w_nil
+
+    @classdef.singleton_method("mkdir", path="path", mask="int")
+    def method_mkdir(self, space, path, mask=-1):
+        try:
+            os.mkdir(path, mask) if mask >= 0 else os.mkdir(path)
+        except OSError as e:
+            raise error_for_oserror(space, e)
+        return space.newint(0)
