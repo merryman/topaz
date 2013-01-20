@@ -1,7 +1,7 @@
 import string
 
-from pypy.rlib.rstring import StringBuilder
-from pypy.rlib.runicode import unicode_encode_utf_8
+from rpython.rlib.rstring import StringBuilder
+from rpython.rlib.runicode import unicode_encode_utf_8
 
 from rply import Token
 from rply.token import SourcePosition
@@ -538,6 +538,7 @@ class Lexer(object):
         ch2 = self.read()
         if ch2 == "=":
             self.add(ch2)
+            self.state = self.EXPR_BEG
             yield self.emit("OP_ASGN")
         elif self.is_beg() or (self.is_arg() and space_seen and not ch2.isspace()):
             self.state = self.EXPR_BEG
