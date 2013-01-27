@@ -116,7 +116,10 @@ class W_Dir(W_Object):
     @classdef.singleton_method("mkdir", path="path", mask="int")
     def method_mkdir(self, space, path, mask=-1):
         try:
-            os.mkdir(path, mask) if mask >= 0 else os.mkdir(path)
+            if mask >= 0:
+                os.mkdir(path, mask)
+            else:
+                os.mkdir(path, 0777)
         except OSError as e:
             raise error_for_oserror(space, e)
         return space.newint(0)
