@@ -57,8 +57,9 @@ class TestParser(BaseTopazTest):
             ast.Statement(ast.ConstantFloat(0.001))
         ]))
         assert space.parse("1e+3") == ast.Main(ast.Block([
-                    ast.Statement(ast.ConstantFloat(1000.0))
+            ast.Statement(ast.ConstantFloat(1000.0))
         ]))
+>>>>>>> origin/master
         assert space.parse("-1.2") == ast.Main(ast.Block([
             ast.Statement(ast.ConstantFloat(-1.2))
         ]))
@@ -1345,6 +1346,25 @@ HERE
         assert space.parse("f { |x, b=1, *a, &s| }") == ast.Main(ast.Block([
             ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("x"), ast.Argument("b", ast.ConstantInt(1))], "a", "s", ast.Nil()), 1))
         ]))
+        assert space.parse("f { |opt1=1, opt2=2| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock(
+                [
+                    ast.Argument("opt1", ast.ConstantInt(1)),
+                    ast.Argument("opt2", ast.ConstantInt(2))
+                ],
+                None,
+                None,
+                ast.Nil()
+            ), 1))
+        ]))
+        assert space.parse("f { |opt1=1, *rest, &blk| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock(
+                [ast.Argument("opt1", ast.ConstantInt(1))],
+                "rest",
+                "blk",
+                ast.Nil()
+            ), 1))
+        ]))
         assert space.parse("f { |a, (x, y)| }") == ast.Main(ast.Block([
             ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock(
                 [
@@ -1363,12 +1383,12 @@ HERE
                 )])
             ), 1)),
         ]))
-        assert space.parse("f { |a, (x, (*, y, z)), d=1, *r, &b| }") == ast.Main(ast.Block([
+        assert space.parse("f { |a, (x, (*, y, z)), d, *r, &b| }") == ast.Main(ast.Block([
             ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock(
                 [
                     ast.Argument("a"),
                     ast.Argument("1"),
-                    ast.Argument("d", ast.ConstantInt(1))
+                    ast.Argument("d")
                 ],
                 "r",
                 "b",
@@ -1386,6 +1406,26 @@ HERE
                     )
                 )])
             ), 1)),
+        ]))
+
+    def test_parens_call(self, space):
+        assert space.parse("blk.(1, 2)") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(
+                ast.Send(ast.Self(1), "blk", [], None, 1),
+                "call",
+                [ast.ConstantInt(1), ast.ConstantInt(2)],
+                None,
+                1
+            ))
+        ]))
+        assert space.parse("blk::(1, 2)") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(
+                ast.Send(ast.Self(1), "blk", [], None, 1),
+                "call",
+                [ast.ConstantInt(1), ast.ConstantInt(2)],
+                None,
+                1
+            ))
         ]))
 
     def test_yield(self, space):
