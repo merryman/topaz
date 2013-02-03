@@ -1340,7 +1340,6 @@ HERE
             ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("a")], "*", None, ast.Nil()), 1))
         ]))
         assert space.parse("f { |a, *s| }") == ast.Main(ast.Block([
-<<<<<<< HEAD
             ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("a")], "s", None, ast.Nil()), 1))
         ]))
         assert space.parse("f { |&s| }") == ast.Main(ast.Block([
@@ -1402,9 +1401,67 @@ HERE
                     )
                 )])
             ), 1)),
-||||||| merged common ancestors
-            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("a")], "s", ast.Nil()), 1))
-=======
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("a")], "s", None, ast.Nil()), 1))
+        ]))
+        assert space.parse("f { |&s| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([], None, "s", ast.Nil()), 1))
+        ]))
+        assert space.parse("f { |b=1| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("b", ast.ConstantInt(1))], None, None, ast.Nil()), 1))
+        ]))
+        assert space.parse("f { |b=1, &s| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("b", ast.ConstantInt(1))], None, "s", ast.Nil()), 1))
+        ]))
+        assert space.parse("f { |x, b=1| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("x"), ast.Argument("b", ast.ConstantInt(1))], None, None, ast.Nil()), 1))
+        ]))
+        assert space.parse("f { |x, b=1, &s| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("x"), ast.Argument("b", ast.ConstantInt(1))], None, "s", ast.Nil()), 1))
+        ]))
+        assert space.parse("f { |x, b=1, *a, &s| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("x"), ast.Argument("b", ast.ConstantInt(1))], "a", "s", ast.Nil()), 1))
+        ]))
+        assert space.parse("f { |a, (x, y)| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock(
+                [
+                    ast.Argument("a"),
+                    ast.Argument("1"),
+                ],
+                None, None,
+                ast.Block([ast.Statement(
+                    ast.MultiAssignment(
+                        ast.MultiAssignable([
+                            ast.Variable("x", -1),
+                            ast.Variable("y", -1),
+                        ]),
+                        ast.Variable("1", 1)
+                    )
+                )])
+            ), 1)),
+        ]))
+        assert space.parse("f { |a, (x, (*, y, z)), d=1, *r, &b| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock(
+                [
+                    ast.Argument("a"),
+                    ast.Argument("1"),
+                    ast.Argument("d", ast.ConstantInt(1))
+                ],
+                "r",
+                "b",
+                ast.Block([ast.Statement(
+                    ast.MultiAssignment(
+                        ast.MultiAssignable([
+                            ast.Variable("x", -1),
+                            ast.MultiAssignable([
+                                ast.Splat(None),
+                                ast.Variable("y", -1),
+                                ast.Variable("z", -1)
+                            ])
+                        ]),
+                        ast.Variable("1", 1)
+                    )
+                )])
+            ), 1)),
             ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("a")], "s", None, ast.Nil()), 1))
         ]))
         assert space.parse("f { |&s| }") == ast.Main(ast.Block([
@@ -1505,7 +1562,6 @@ HERE
                 None,
                 1
             ))
->>>>>>> origin/master
         ]))
 
     def test_yield(self, space):
