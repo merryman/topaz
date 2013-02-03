@@ -9,6 +9,11 @@ from ..base import BaseTopazTest
 
 
 class TestIO(BaseTopazTest):
+    def test_constants(self, space):
+        assert space.int_w(space.execute("return IO::SEEK_CUR")) == os.SEEK_CUR
+        assert space.int_w(space.execute("return IO::SEEK_END")) == os.SEEK_END
+        assert space.int_w(space.execute("return IO::SEEK_SET")) == os.SEEK_SET
+
     def test_new_from_file(self, space, tmpdir):
         contents = "foo\nbar\nbaz\n"
         f = tmpdir.join("file.txt")
@@ -25,17 +30,33 @@ class TestIO(BaseTopazTest):
         w_res = space.execute("return IO.new(1)")
         assert isinstance(w_res, W_IOObject)
 
-    def test_write(self, space, capfd):
+    def test_write(self, space, capfd, tmpdir):
         content = "foo\n"
         space.execute('return IO.new(1, "w").write("%s")' % content)
         out, err = capfd.readouterr()
         assert out == content
         content = "foo\n"
 
-    def test_push(self, space, capfd):
+        f = tmpdir.join("file.txt")
+        with self.raises(space, "IOError", "closed stream"):
+            space.execute("""
+            io = File.new('%s', "w")
+            io.close
+            io.write("")
+            """ % f)
+
+    def test_push(self, space, capfd, tmpdir):
         space.execute('return IO.new(1, "w") << "hello" << "world"')
         out, err = capfd.readouterr()
         assert out == "helloworld"
+
+        f = tmpdir.join("file.txt")
+        with self.raises(space, "IOError", "closed stream"):
+            space.execute("""
+            io = File.new('%s', "w")
+            io.close
+            io << ""
+            """ % f)
 
     def test_read(self, space, tmpdir):
         contents = "foo\nbar\nbaz\n"
@@ -58,10 +79,25 @@ class TestIO(BaseTopazTest):
         with self.raises(space, "ArgumentError"):
             space.execute("File.new('%s').read(-1)" % f)
 
-    def test_simple_print(self, space, capfd):
+        with self.raises(space, "IOError", "closed stream"):
+            space.execute("""
+            io = File.new('%s')
+            io.close
+            io.read
+            """ % f)
+
+    def test_simple_print(self, space, capfd, tmpdir):
         space.execute('IO.new(1, "w").print("foo")')
         out, err = capfd.readouterr()
         assert out == "foo"
+
+        f = tmpdir.join("file.txt")
+        with self.raises(space, "IOError", "closed stream"):
+            space.execute("""
+            io = File.new('%s', "w")
+            io.close
+            io.print ""
+            """ % f)
 
     def test_multi_print(self, space, capfd):
         space.execute('IO.new(1, "w").print("This", "is", 100, "percent")')
@@ -86,15 +122,31 @@ class TestIO(BaseTopazTest):
         out, err = capfd.readouterr()
         assert out == "foobarbaz"
 
-    def test_puts(self, space, capfd):
+    def test_puts(self, space, capfd, tmpdir):
         space.execute("IO.new(1, 'w').puts('This', 'is\n', 100, 'percent')")
         out, err = capfd.readouterr()
         assert out == "This\nis\n100\npercent\n"
 
-    def test_flush(self, space, capfd):
+        f = tmpdir.join("file.txt")
+        with self.raises(space, "IOError", "closed stream"):
+            space.execute("""
+            io = File.new('%s', "w")
+            io.close
+            io.puts ""
+            """ % f)
+
+    def test_flush(self, space, capfd, tmpdir):
         space.execute("IO.new(1, 'w').flush.puts('String')")
         out, err = capfd.readouterr()
         assert out == "String\n"
+
+        f = tmpdir.join("file.txt")
+        with self.raises(space, "IOError", "closed stream"):
+            space.execute("""
+            io = File.new('%s', "w")
+            io.close
+            io.flush
+            """ % f)
 
     def test_globals(self, space, capfd):
         w_res = space.execute("""
@@ -109,6 +161,65 @@ class TestIO(BaseTopazTest):
         assert out == "STDOUT\n$stdout\n$>\n"
         assert err == "STDERR\n$stderr\n"
         assert self.unwrap(space, w_res) == [None, None]
+
+    def test_rewind(self, space, tmpdir):
+        f = tmpdir.join("file.txt")
+        f.write("content")
+        w_res = space.execute("""
+        f = File.new('%s', "r+")
+        c = f.read
+        f.rewind
+        return c, f.read
+        """ % f)
+        assert self.unwrap(space, w_res) == ["content", "content"]
+        with self.raises(space, "IOError", "closed stream"):
+            space.execute("""
+            io = File.new('%s')
+            io.close
+            io.rewind
+            """ % f)
+
+    def test_seek(self, space, tmpdir):
+        f = tmpdir.join("file.txt")
+        f.write("content")
+        w_res = space.execute("""
+        res = []
+        f = File.new('%s', "r+")
+        f.seek(2, IO::SEEK_SET)
+        res << f.read
+        f.seek(2)
+        res << f.read
+        f.seek(-3, IO::SEEK_CUR)
+        res << f.read
+        f.seek(-2, IO::SEEK_END)
+        res << f.read
+        return res
+        """ % f)
+        assert self.unwrap(space, w_res) == [
+            "ntent", "ntent", "ent", "nt"
+        ]
+        with self.raises(space, "IOError", "closed stream"):
+            space.execute("""
+            io = File.new('%s')
+            io.close
+            io.seek 2
+            """ % f)
+
+    def test_pipe(self, space):
+        w_res = space.execute("""
+        return IO.pipe
+        """)
+        w_read, w_write = space.listview(w_res)
+        assert isinstance(w_read, W_IOObject)
+        assert isinstance(w_read, W_IOObject)
+        w_res = space.execute("""
+        r, w, r_c, w_c = IO.pipe do |r, w|
+            r.close
+            [r, w, r.closed?, w.closed?]
+        end
+        return r.closed?, w.closed?, r_c, w_c
+        """)
+        assert self.unwrap(space, w_res) == [True, True, True, False]
 
 
 class TestFile(BaseTopazTest):
@@ -300,6 +411,16 @@ class TestFile(BaseTopazTest):
         assert space.str_w(space.execute("return File.basename('/ab')")) == "ab"
         assert space.str_w(space.execute("return File.basename('/foo/bar/ab')")) == "ab"
 
+    def test_truncate(self, space, tmpdir):
+        f = tmpdir.join("file.txt")
+        f.write("content")
+        w_res = space.execute("""
+        f = File.new('%s', "r+")
+        f.truncate(3)
+        return f.read
+        """ % f)
+        assert self.unwrap(space, w_res) == "con"
+
 
 class TestExpandPath(BaseTopazTest):
     def test_expand_to_absolute(self, space):
@@ -311,6 +432,8 @@ class TestExpandPath(BaseTopazTest):
             os.path.join(os.getcwd(), "a"),
             os.path.join(os.getcwd(), "a"),
         ]
+        with self.raises(space, "ArgumentError", "string contains null byte"):
+            space.execute("""return File.expand_path(".\\0.")""")
 
     def test_covert_to_absolute_using_provided_base(self, space):
         w_res = space.execute("""return File.expand_path("", "/tmp")""")
@@ -321,6 +444,8 @@ class TestExpandPath(BaseTopazTest):
         assert self.unwrap(space, w_res) == "/tmp/a"
         w_res = space.execute("""return File.expand_path(".", "/")""")
         assert self.unwrap(space, w_res) == "/"
+        w_res = space.execute("""return File.expand_path(".", nil)""")
+        assert self.unwrap(space, w_res) == os.getcwd()
 
     def test_home_expansion(self, space):
         w_res = space.execute("""return File.expand_path("~")""")

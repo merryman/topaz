@@ -66,9 +66,9 @@ def run_rubyspec_untranslated(env):
 
 
 def run_translate_tests(env):
-    local("PYTHONPATH={rpython_path}:$PYTHONPATH python {rpython_path}/rpython/translator/goal/translate.py --batch -Ojit targettopaz.py".format(**env))
-    run_specs("`pwd`/topaz-c")
-    local("PYTHONPATH={rpython_path}:$PYTHONPATH py.test --topaz=topaz-c tests/jit/".format(**env))
+    local("PYTHONPATH={rpython_path}:$PYTHONPATH python {rpython_path}/rpython/bin/rpython --batch -Ojit targettopaz.py".format(**env))
+    run_specs("`pwd`/bin/topaz")
+    local("PYTHONPATH={rpython_path}:$PYTHONPATH py.test --topaz=bin/topaz tests/jit/".format(**env))
 
 
 def run_specs(binary, prefix=""):

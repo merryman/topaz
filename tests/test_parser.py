@@ -57,7 +57,7 @@ class TestParser(BaseTopazTest):
             ast.Statement(ast.ConstantFloat(0.001))
         ]))
         assert space.parse("1e+3") == ast.Main(ast.Block([
-                    ast.Statement(ast.ConstantFloat(1000.0))
+            ast.Statement(ast.ConstantFloat(1000.0))
         ]))
         assert space.parse("-1.2") == ast.Main(ast.Block([
             ast.Statement(ast.ConstantFloat(-1.2))
@@ -990,6 +990,21 @@ class TestParser(BaseTopazTest):
         assert space.parse('"\u2603"') == string(u"\u2603".encode("utf-8"))
         assert space.parse('?\u2603') == string(u"\u2603".encode("utf-8"))
         assert space.parse('"\uffff"') == string(u"\uffff".encode("utf-8"))
+        assert space.parse('"\u{ff}"') == string(u"\u00ff".encode("utf-8"))
+        assert space.parse('?\u{ff}') == string(u"\u00ff".encode("utf-8"))
+        assert space.parse('"\u{3042 3044 3046 3048}"') == string(u"\u3042\u3044\u3046\u3048".encode("utf-8"))
+        with self.raises(space, "SyntaxError", "line 1 (invalid Unicode escape)"):
+            space.parse('"\u123x"')
+        with self.raises(space, "SyntaxError", "line 1 (invalid Unicode escape)"):
+            space.parse('"\u{}"')
+        with self.raises(space, "SyntaxError", "line 1 (invalid Unicode escape)"):
+            space.parse('"\u{ 3042}"')
+        with self.raises(space, "SyntaxError", "line 1 (unterminated Unicode escape)"):
+            space.parse('"\u{123x}"')
+        with self.raises(space, "SyntaxError", "line 1 (unterminated Unicode escape)"):
+            space.parse('?\u{3042 3044}')
+        with self.raises(space, "SyntaxError", "line 1 (invalid Unicode codepoint (too large))"):
+            space.parse('"\u{110000}"')
 
     def test_dynamic_string(self, space):
         const_string = lambda strvalue: ast.Main(ast.Block([
@@ -1325,6 +1340,7 @@ HERE
             ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("a")], "*", None, ast.Nil()), 1))
         ]))
         assert space.parse("f { |a, *s| }") == ast.Main(ast.Block([
+<<<<<<< HEAD
             ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("a")], "s", None, ast.Nil()), 1))
         ]))
         assert space.parse("f { |&s| }") == ast.Main(ast.Block([
@@ -1386,6 +1402,110 @@ HERE
                     )
                 )])
             ), 1)),
+||||||| merged common ancestors
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("a")], "s", ast.Nil()), 1))
+=======
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("a")], "s", None, ast.Nil()), 1))
+        ]))
+        assert space.parse("f { |&s| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([], None, "s", ast.Nil()), 1))
+        ]))
+        assert space.parse("f { |b=1| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("b", ast.ConstantInt(1))], None, None, ast.Nil()), 1))
+        ]))
+        assert space.parse("f { |b=1, &s| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("b", ast.ConstantInt(1))], None, "s", ast.Nil()), 1))
+        ]))
+        assert space.parse("f { |x, b=1| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("x"), ast.Argument("b", ast.ConstantInt(1))], None, None, ast.Nil()), 1))
+        ]))
+        assert space.parse("f { |x, b=1, &s| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("x"), ast.Argument("b", ast.ConstantInt(1))], None, "s", ast.Nil()), 1))
+        ]))
+        assert space.parse("f { |x, b=1, *a, &s| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock([ast.Argument("x"), ast.Argument("b", ast.ConstantInt(1))], "a", "s", ast.Nil()), 1))
+        ]))
+        assert space.parse("f { |opt1=1, opt2=2| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock(
+                [
+                    ast.Argument("opt1", ast.ConstantInt(1)),
+                    ast.Argument("opt2", ast.ConstantInt(2))
+                ],
+                None,
+                None,
+                ast.Nil()
+            ), 1))
+        ]))
+        assert space.parse("f { |opt1=1, *rest, &blk| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock(
+                [ast.Argument("opt1", ast.ConstantInt(1))],
+                "rest",
+                "blk",
+                ast.Nil()
+            ), 1))
+        ]))
+        assert space.parse("f { |a, (x, y)| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock(
+                [
+                    ast.Argument("a"),
+                    ast.Argument("1"),
+                ],
+                None, None,
+                ast.Block([ast.Statement(
+                    ast.MultiAssignment(
+                        ast.MultiAssignable([
+                            ast.Variable("x", -1),
+                            ast.Variable("y", -1),
+                        ]),
+                        ast.Variable("1", 1)
+                    )
+                )])
+            ), 1)),
+        ]))
+        assert space.parse("f { |a, (x, (*, y, z)), d, *r, &b| }") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Self(1), "f", [], ast.SendBlock(
+                [
+                    ast.Argument("a"),
+                    ast.Argument("1"),
+                    ast.Argument("d")
+                ],
+                "r",
+                "b",
+                ast.Block([ast.Statement(
+                    ast.MultiAssignment(
+                        ast.MultiAssignable([
+                            ast.Variable("x", -1),
+                            ast.MultiAssignable([
+                                ast.Splat(None),
+                                ast.Variable("y", -1),
+                                ast.Variable("z", -1)
+                            ])
+                        ]),
+                        ast.Variable("1", 1)
+                    )
+                )])
+            ), 1)),
+        ]))
+
+    def test_parens_call(self, space):
+        assert space.parse("blk.(1, 2)") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(
+                ast.Send(ast.Self(1), "blk", [], None, 1),
+                "call",
+                [ast.ConstantInt(1), ast.ConstantInt(2)],
+                None,
+                1
+            ))
+        ]))
+        assert space.parse("blk::(1, 2)") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(
+                ast.Send(ast.Self(1), "blk", [], None, 1),
+                "call",
+                [ast.ConstantInt(1), ast.ConstantInt(2)],
+                None,
+                1
+            ))
+>>>>>>> origin/master
         ]))
 
     def test_yield(self, space):
@@ -1421,6 +1541,9 @@ HERE
             ast.Statement(ast.Symbol(ast.DynamicString([ast.Block([ast.Statement(ast.ConstantInt(2))])]), 1))
         ]))
         assert space.parse("%s{foo bar}") == sym("foo bar")
+        assert space.parse(":-@") == sym("-@")
+        assert space.parse(":+@") == sym("+@")
+        assert space.parse(":$-w") == sym("$-w")
 
     def test_do_symbol(self, space):
         r = space.parse("f :do")
@@ -1986,6 +2109,7 @@ HERE
         assert space.parse("$'") == simple_global("$'")
         assert space.parse("$+") == simple_global("$+")
         assert space.parse("$,") == simple_global("$,")
+        assert space.parse("$-w") == simple_global("$-w")
 
     def test_comments(self, space):
         r = space.parse("""

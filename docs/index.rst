@@ -8,7 +8,9 @@ written in Python on top of `RPython`_ (the toolchain that powers PyPy).
    :maxdepth: 1
 
    getting-started
+   current-status
    contributing
+   code-of-conduct
 
 
 

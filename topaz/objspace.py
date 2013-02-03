@@ -16,8 +16,6 @@ from topaz.executioncontext import ExecutionContext
 from topaz.frame import Frame
 from topaz.interpreter import Interpreter
 from topaz.lexer import LexerError, Lexer
-from topaz.lib.dir import W_Dir
-from topaz.lib.random import W_RandomObject
 from topaz.module import ClassCache, ModuleCache
 from topaz.modules.comparable import Comparable
 from topaz.modules.enumerable import Enumerable
@@ -33,6 +31,7 @@ from topaz.objects.bindingobject import W_BindingObject
 from topaz.objects.boolobject import W_TrueObject, W_FalseObject
 from topaz.objects.classobject import W_ClassObject
 from topaz.objects.codeobject import W_CodeObject
+from topaz.objects.dirobject import W_DirObject
 from topaz.objects.encodingobject import W_EncodingObject
 from topaz.objects.envobject import W_EnvObject
 from topaz.objects.exceptionobject import (W_ExceptionObject, W_NoMethodError,
@@ -53,6 +52,7 @@ from topaz.objects.nilobject import W_NilObject
 from topaz.objects.numericobject import W_NumericObject
 from topaz.objects.objectobject import W_Object, W_BaseObject
 from topaz.objects.procobject import W_ProcObject
+from topaz.objects.randomobject import W_RandomObject
 from topaz.objects.rangeobject import W_RangeObject
 from topaz.objects.regexpobject import W_RegexpObject
 from topaz.objects.stringobject import W_StringObject
@@ -114,6 +114,7 @@ class ObjectSpace(object):
         self.w_IOError = self.getclassfor(W_IOError)
         self.w_LoadError = self.getclassfor(W_LoadError)
         self.w_RangeError = self.getclassfor(W_RangeError)
+        self.w_RegexpError = self.getclassfor(W_RegexpError)
         self.w_RuntimeError = self.getclassfor(W_RuntimeError)
         self.w_StandardError = self.getclassfor(W_StandardError)
         self.w_StopIteration = self.getclassfor(W_StopIteration)
@@ -134,10 +135,10 @@ class ObjectSpace(object):
 
             self.w_NoMethodError, self.w_ArgumentError, self.w_TypeError,
             self.w_ZeroDivisionError, self.w_SystemExit, self.w_RangeError,
-            self.w_RuntimeError, self.w_SystemCallError, self.w_LoadError,
-            self.w_StopIteration, self.w_SyntaxError, self.w_NameError,
-            self.w_StandardError, self.w_LocalJumpError, self.w_IndexError,
-            self.w_IOError,
+            self.w_RegexpError, self.w_RuntimeError, self.w_SystemCallError,
+            self.w_LoadError, self.w_StopIteration, self.w_SyntaxError,
+            self.w_NameError, self.w_StandardError, self.w_LocalJumpError,
+            self.w_IndexError, self.w_IOError,
 
             self.w_kernel, self.w_topaz,
 
@@ -147,7 +148,7 @@ class ObjectSpace(object):
             self.getclassfor(W_RangeObject),
             self.getclassfor(W_IOObject),
             self.getclassfor(W_FileObject),
-            self.getclassfor(W_Dir),
+            self.getclassfor(W_DirObject),
             self.getclassfor(W_EncodingObject),
             self.getclassfor(W_IntegerObject),
             self.getclassfor(W_RandomObject),
@@ -158,7 +159,6 @@ class ObjectSpace(object):
 
             self.getclassfor(W_ExceptionObject),
             self.getclassfor(W_StandardError),
-            self.getclassfor(W_RegexpError),
             self.getclassfor(W_ThreadError),
 
             self.getmoduleobject(Comparable.moduledef),
@@ -228,7 +228,7 @@ class ObjectSpace(object):
             sourcepos = e.getsourcepos()
             raise self.error(self.w_SyntaxError, "line %d" % (sourcepos.lineno if sourcepos else -1))
         except LexerError as e:
-            raise self.error(self.w_SyntaxError, "line %d" % e.pos.lineno)
+            raise self.error(self.w_SyntaxError, "line %d (%s)" % (e.pos.lineno, e.msg))
 
     def compile(self, source, filepath, initial_lineno=1, symtable=None):
         if symtable is None:
