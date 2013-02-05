@@ -1,4 +1,5 @@
 import copy
+import string
 
 from rpython.rlib import jit
 from rpython.rlib.objectmodel import newlist_hint, compute_hash
@@ -185,14 +186,15 @@ class MutableStringStrategy(StringStrategy):
         if len(storage) == 0:
             return
 
-        carry = ""
+        carry = "\0"
+        has_alnums = False
         last_alnum = 0
         start = len(storage) - 1
 
         while start >= 0:
             ch = storage[start]
-            if ch.isalnum():
-                carry = "\0"
+            if ch in string.letters or ch in string.digits:
+                has_alnums = True
                 if ch == "9":
                     carry = "1"
                     storage[start] = "0"
@@ -210,7 +212,7 @@ class MutableStringStrategy(StringStrategy):
                 last_alnum = start
             start -= 1
 
-        if not carry:
+        if not has_alnums:
             start = len(storage) - 1
             carry = "\1"
 
