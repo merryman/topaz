@@ -226,6 +226,14 @@ class Kernel(Module):
                 argv0 = shell
             os.execv(shell, [argv0, "-c", cmd])
 
+    @moduledef.function("fork")
+    def method_fork(self, space, block):
+        return space.send(
+            space.getmoduleobject(Process.moduledef),
+            space.newsymbol("fork"),
+            block=block
+        )
+
     @moduledef.function("at_exit")
     def method_at_exit(self, space, block):
         w_proc = space.newproc(block)
@@ -356,3 +364,11 @@ class Kernel(Module):
     method_untrust, method_untrusted, method_trust = new_flag(moduledef, "untrust", "untrusted?", "trust")
     method_taint, method_tainted, method_untaint = new_flag(moduledef, "taint", "tainted?", "untaint")
     method_freeze, method_frozen = new_flag(moduledef, "freeze", "frozen?", None)
+
+    moduledef.app_method("""
+    def `(cmd)
+        cmd = cmd.to_str if cmd.respond_to?(:to_str)
+        raise TypeError, "can't convert #{cmd.class} into String" unless cmd.is_a?(String)
+        IO.popen(cmd) { |r| r.read }
+    end
+    """)
