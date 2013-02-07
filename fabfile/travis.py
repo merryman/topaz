@@ -25,14 +25,6 @@ class Test(object):
         with open("rpython_marker", "w") as f:
             f.write(path_name)
 
-    def download_mspec(self):
-        with lcd(".."):
-            local("git clone --depth=100 --quiet https://github.com/rubyspec/mspec")
-
-    def download_rubyspec(self):
-        with lcd(".."):
-            local("git clone --depth=100 --quiet https://github.com/rubyspec/rubyspec")
-
     def run_tests(self):
         env = {}
         if self.needs_rpython:
@@ -52,9 +44,6 @@ def install_requirements():
         t.install_deps()
     if t.needs_rpython:
         t.download_rpython()
-    if t.needs_rubyspec:
-        t.download_mspec()
-        t.download_rubyspec()
 
 
 @task
@@ -74,18 +63,14 @@ def run_own_tests(env):
     local("PYTHONPATH=$PYTHONPATH:{rpython_path} py.test".format(**env))
 
 
-def run_rubyspec_untranslated(env):
-    run_specs("bin/topaz_untranslated.py", prefix="PYTHONPATH=$PYTHONPATH:{rpython_path} ".format(**env))
-
-
 def run_translate_tests(env):
     local("PYTHONPATH={rpython_path}:$PYTHONPATH python {rpython_path}/rpython/bin/rpython --batch -Ojit targettopaz.py".format(**env))
-    run_specs("`pwd`/bin/topaz")
+    run_specs()
     local("PYTHONPATH={rpython_path}:$PYTHONPATH py.test --topaz=bin/topaz tests/jit/".format(**env))
 
 
-def run_specs(binary, prefix=""):
-    local("{prefix}/spec/mspec/bin/mspec -t {binary} --config=topaz.mspec --format=dotted".format(
+def run_specs(prefix=""):
+    local("{prefix}/spec/mspec/bin/mspec --config=topaz.mspec --format=dotted".format(
         prefix=prefix,
         binary=binary,
     ))
@@ -96,7 +81,6 @@ def run_docs_tests(env):
 
 TEST_TYPES = {
     "own": Test(run_own_tests, deps=["-r requirements.txt"]),
-    "rubyspec_untranslated": Test(run_rubyspec_untranslated, deps=["-r requirements.txt"], needs_rubyspec=True),
-    "translate": Test(run_translate_tests, deps=["-r requirements.txt"], needs_rubyspec=True, builds_release=True),
+    "translate": Test(run_translate_tests, deps=["-r requirements.txt"], builds_release=True),
     "docs": Test(run_docs_tests, deps=["sphinx"], needs_rpython=False),
 }

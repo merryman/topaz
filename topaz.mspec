@@ -1,4 +1,5 @@
 class MSpecScript
+  set :target, "bin/topaz"
   set :xtags, ["fails"]
 
   core = ["spec/rubyspec/core/",
