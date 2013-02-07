@@ -1,7 +1,8 @@
 class MSpecScript
   set :target, "bin/topaz"
   set :xtags, ["fails"]
-  set :files, ["spec/rubyspec/core/",
+  set :files, [# Core
+               "spec/rubyspec/core/",
                "^spec/rubyspec/core/struct",
                "^spec/rubyspec/core/string/split_spec.rb",
                "^spec/rubyspec/core/string/slice_spec.rb",
@@ -104,5 +105,34 @@ class MSpecScript
                "^spec/rubyspec/core/process/waitall_spec.rb",
                "^spec/rubyspec/core/string/chop_spec.rb",
                "^spec/rubyspec/core/string/chomp_spec.rb",
-               "^spec/rubyspec/core/file/ctime_spec.rb"]
+               "^spec/rubyspec/core/file/ctime_spec.rb",
+               # Language
+               "spec/rubyspec/language",
+               "^spec/rubyspec/language/block_spec.rb",
+               "^spec/rubyspec/language/regexp/character_classes_spec.rb",
+               "^spec/rubyspec/language/regexp/anchors_spec.rb",
+               "^spec/rubyspec/language/send_spec.rb",
+               "^spec/rubyspec/language/constants_spec.rb",
+               "^spec/rubyspec/language/literal_lambda_spec.rb",
+               "^spec/rubyspec/language/precedence_spec.rb",
+               "^spec/rubyspec/language/predefined_spec.rb",
+               "^spec/rubyspec/language/regexp/encoding_spec.rb",
+               "^spec/rubyspec/language/regexp/escapes_spec.rb",
+               "^spec/rubyspec/language/regexp/interpolation_spec.rb",
+               "^spec/rubyspec/language/regexp/modifiers_spec.rb",
+               "^spec/rubyspec/language/BEGIN_spec.rb",
+               "^spec/rubyspec/language/alias_spec.rb",
+               "^spec/rubyspec/language/break_spec.rb",
+               "^spec/rubyspec/language/class_spec.rb",
+               "^spec/rubyspec/language/def_spec.rb",
+               "^spec/rubyspec/language/defined_spec.rb",
+               "^spec/rubyspec/language/or_spec.rb",
+               "^spec/rubyspec/language/retry_spec.rb",
+               "^spec/rubyspec/language/return_spec.rb",
+               "^spec/rubyspec/language/super_spec.rb",
+               # Cmdline
+               "spec/rubyspec/command_line",
+               "^spec/rubyspec/command_line/dash_v_spec.rb",
+               "^spec/rubyspec/command_line/dash_upper_e_spec.rb"
+              ]
 end
