@@ -71,8 +71,7 @@ def run_translate_tests(env):
 
 def run_specs(prefix=""):
     local("{prefix}/spec/mspec/bin/mspec --config=topaz.mspec --format=dotted".format(
-        prefix=prefix,
-        binary=binary,
+        prefix=prefix
     ))
 
 
