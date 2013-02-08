@@ -1,1 +1,1 @@
-from fabfile import travis, spec
+from fabfile import travis
