@@ -70,7 +70,7 @@ def run_translate_tests(env):
 
 
 def run_specs(prefix=None):
-    local("{prefix}/spec/mspec/bin/mspec --config=topaz.mspec --format=dotted".format(
+    local("{prefix}/spec/mspec/bin/mspec --config={prefix}/topaz.mspec --format=dotted".format(
         prefix=(prefix if prefix else os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
     ))
 
