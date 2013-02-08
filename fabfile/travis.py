@@ -69,9 +69,9 @@ def run_translate_tests(env):
     local("PYTHONPATH={rpython_path}:$PYTHONPATH py.test --topaz=bin/topaz tests/jit/".format(**env))
 
 
-def run_specs(prefix=""):
+def run_specs(prefix=None):
     local("{prefix}/spec/mspec/bin/mspec --config=topaz.mspec --format=dotted".format(
-        prefix=prefix
+        prefix=(prefix if prefix else os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
     ))
 
 
