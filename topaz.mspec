@@ -3,7 +3,10 @@ class MSpecScript
   set :xtags, ["fails"]
 
   core = ["spec/rubyspec/core/",
+          "^spec/rubyspec/core/array/pack/",
+          "^spec/rubyspec/core/fixnum/right_shift_spec.rb",
           "^spec/rubyspec/core/struct",
+          "^spec/rubyspec/core/string/unpack/",
           "^spec/rubyspec/core/string/split_spec.rb",
           "^spec/rubyspec/core/string/slice_spec.rb",
           "^spec/rubyspec/core/string/crypt_spec.rb",
