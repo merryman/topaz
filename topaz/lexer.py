@@ -8,7 +8,7 @@ from rply.token import SourcePosition
 
 
 class LexerError(Exception):
-    def __init__(self, pos, msg = None):
+    def __init__(self, pos, msg=None):
         self.pos = pos
         self.msg = "" if msg is None else msg
 
