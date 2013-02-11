@@ -3,6 +3,7 @@ import copy
 from rpython.rlib.listsort import TimSort
 
 from topaz.coerce import Coerce
+from topaz.error import RubyError
 from topaz.module import ClassDef, check_frozen
 from topaz.modules.enumerable import Enumerable
 from topaz.objects.objectobject import W_Object
