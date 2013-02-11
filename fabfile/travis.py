@@ -104,6 +104,6 @@ def run_docs_tests(env):
 
 TEST_TYPES = {
     "own": Test(run_own_tests, deps=["-r requirements.txt"]),
-    "translate": Test(run_translate_tests, deps=["-r requirements.txt"], builds_release=True),
+    "translate": Test(run_translate_tests, deps=["-r requirements.txt"], create_build=True),
     "docs": Test(run_docs_tests, deps=["sphinx"], needs_rpython=False),
 }
