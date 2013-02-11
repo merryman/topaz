@@ -2,6 +2,8 @@ import copy
 
 from rpython.rlib.listsort import TimSort
 
+from topaz.coerce import Coerce
+from topaz.error import RubyError
 from topaz.module import ClassDef, check_frozen
 from topaz.modules.enumerable import Enumerable
 from topaz.objects.objectobject import W_Object
@@ -213,6 +215,13 @@ class W_ArrayObject(W_Object):
             for w_o in self.items_w
         ]))
 
+    @classdef.singleton_method("try_convert")
+    def method_try_convert(self, space, w_obj):
+        try:
+            Coerce.array(space, w_obj)
+        except RubyError:
+            return space.w_nil
+
     classdef.app_method("""
     def at idx
         self[idx]
@@ -345,32 +354,29 @@ class W_ArrayObject(W_Object):
         return self
 
     classdef.app_method("""
-    def flatten!(level = -1)
+    def flatten(level = -1)
         list = []
-
-        recursion_guard = Thread.current["recursion_guard"] || []
-        if recursion_guard.include? self
+        recursion = Thread.current.recursion_guard(self) do
+            self.each do |item|
+                if level == 0
+                    list << item
+                elsif ary = Array.try_convert(item)
+                    list += ary.flatten(level - 1)
+                else
+                    list << item
+                end
+            end
+            return list
+        end
+        if recursion
             raise ArgumentError, "tried to flatten recursive array"
         end
-        Thread.current["recursion_guard"] = recursion_guard << self
-
-        self.each do |item|
-            if level == 0
-                list << item
-            elsif item.respond_to?(:to_ary) && (ary = item.to_ary).is_a?(Array)
-                list += ary.flatten(level - 1)
-            else
-                list << item
-            end
-        end
-        self.clear
-        self.concat list
-    ensure
-        Thread.current["recursion_guard"].clear
     end
 
-    def flatten(level = -1)
-        dup.flatten!(level)
+    def flatten!(level = -1)
+        list = self.flatten(level)
+        self.clear
+        return self.concat list
     end
 
     def sort(&block)
