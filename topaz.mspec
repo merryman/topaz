@@ -119,6 +119,7 @@ class MSpecScript
               "^spec/rubyspec/language/literal_lambda_spec.rb",
               "^spec/rubyspec/language/precedence_spec.rb",
               "^spec/rubyspec/language/predefined_spec.rb",
+              "^spec/rubyspec/language/predefined/data_spec.rb",
               "^spec/rubyspec/language/regexp/encoding_spec.rb",
               "^spec/rubyspec/language/regexp/escapes_spec.rb",
               "^spec/rubyspec/language/regexp/interpolation_spec.rb",
@@ -132,6 +133,7 @@ class MSpecScript
               "^spec/rubyspec/language/or_spec.rb",
               "^spec/rubyspec/language/retry_spec.rb",
               "^spec/rubyspec/language/return_spec.rb",
+              "^spec/rubyspec/language/execution_spec.rb",
               "^spec/rubyspec/language/super_spec.rb"]
 
   library = ["spec/rubyspec/library",
