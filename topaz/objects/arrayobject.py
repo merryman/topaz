@@ -2,8 +2,6 @@ import copy
 
 from rpython.rlib.listsort import TimSort
 
-from topaz.coerce import Coerce
-from topaz.error import RubyError
 from topaz.module import ClassDef, check_frozen
 from topaz.modules.enumerable import Enumerable
 from topaz.objects.objectobject import W_Object
@@ -217,10 +215,9 @@ class W_ArrayObject(W_Object):
 
     @classdef.singleton_method("try_convert")
     def method_try_convert(self, space, w_obj):
-        try:
-            Coerce.array(space, w_obj)
-        except RubyError:
-            return space.w_nil
+        if not space.is_kind_of(w_obj, space.w_array):
+            w_obj = space.convert_type(w_obj, space.w_array, "to_ary", raise_error=False)
+        return w_obj
 
     classdef.app_method("""
     def at idx
