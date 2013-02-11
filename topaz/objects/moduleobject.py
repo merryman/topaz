@@ -3,7 +3,6 @@ import copy
 from rpython.rlib import jit
 
 from topaz.celldict import CellDict, VersionTag
-from topaz.coerce import Coerce
 from topaz.module import ClassDef
 from topaz.objects.functionobject import W_FunctionObject
 from topaz.objects.objectobject import W_RootObject
@@ -248,9 +247,6 @@ class W_ModuleObject(W_RootObject):
     def set_method_visibility(self, space, name, visibility):
         pass
 
-    def set_define_module_functions(self):
-        pass
-
     @classdef.singleton_method("allocate")
     def method_allocate(self, space):
         # TODO: this should really store None for the name and all places
@@ -314,13 +310,9 @@ class W_ModuleObject(W_RootObject):
         else:
             self.method_attr_reader(space, args_w)
 
-    @classdef.method("module_function")
-    def method_module_function(self, space, w_name=None):
-        if w_name:
-            name = Coerce.symbol(space, w_name)
-            self.attach_method(space, name, self._find_method_pure(space, name, self.version))
-        else:
-            self.set_define_module_functions()
+    @classdef.method("module_function", name="symbol")
+    def method_module_function(self, space, name):
+        self.attach_method(space, name, self._find_method_pure(space, name, self.version))
 
     @classdef.method("private_class_method")
     def method_private_class_method(self, space, w_name):
