@@ -2,6 +2,7 @@ import copy
 
 from rpython.rlib.listsort import TimSort
 
+from topaz.coerce import Coerce
 from topaz.module import ClassDef, check_frozen
 from topaz.modules.enumerable import Enumerable
 from topaz.objects.objectobject import W_Object
@@ -213,6 +214,13 @@ class W_ArrayObject(W_Object):
             for w_o in self.items_w
         ]))
 
+    @classdef.singleton_method("try_convert")
+    def method_try_convert(self, space, w_obj):
+        try:
+            Coerce.array(space, w_obj)
+        except RubyError:
+            return space.w_nil
+
     classdef.app_method("""
     def at idx
         self[idx]
@@ -351,7 +359,7 @@ class W_ArrayObject(W_Object):
             self.each do |item|
                 if level == 0
                     list << item
-                elsif item.respond_to?(:to_ary) && (ary = item.to_ary).is_a?(Array)
+                elsif ary = Array.try_convert(item)
                     list += ary.flatten(level - 1)
                 else
                     list << item
