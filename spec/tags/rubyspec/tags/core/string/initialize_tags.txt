@@ -9,4 +9,5 @@ fails:String#initialize with an argument replaces the encoding of self with that
 fails:String#initialize with an argument tries to convert other to string using to_str
 fails:String#initialize with an argument raises a TypeError if other can't be converted to string
 fails:String#initialize with an argument raises a RuntimeError on a frozen instance that is modified
+fails:String#initialize with no arguments does not raise an exception when frozen
 fails:String#initialize with an argument raises a RuntimeError on a frozen instance when self-replacing
