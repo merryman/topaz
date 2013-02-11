@@ -140,6 +140,15 @@ class TestParser(BaseTopazTest):
                 1
             ))
         ]))
+        assert space.parse("-1.0**2") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(
+                ast.Send(ast.ConstantFloat(1.0), "**", [ast.ConstantInt(2)], None, 1),
+                "-@",
+                [],
+                None,
+                1
+            ))
+        ]))
 
     def test_multi_term_expr(self, space):
         assert space.parse("1 + 2 * 3") == ast.Main(ast.Block([
@@ -1446,6 +1455,11 @@ HERE
             ), 1)),
         ]))
 
+    def test_lambda(self, space):
+        assert space.parse("->{}") == ast.Main(ast.Block([
+            ast.Statement(ast.Lambda(ast.SendBlock([], None, None, ast.Nil())))
+        ]))
+
     def test_parens_call(self, space):
         assert space.parse("blk.(1, 2)") == ast.Main(ast.Block([
             ast.Statement(ast.Send(
@@ -2182,6 +2196,9 @@ HERE
         ]))
         assert space.parse("f not(3)") == ast.Main(ast.Block([
             ast.Statement(ast.Send(ast.Self(1), "f", [ast.Send(ast.ConstantInt(3), "!", [], None, 1)], None, 1))
+        ]))
+        assert space.parse("not()") == ast.Main(ast.Block([
+            ast.Statement(ast.Send(ast.Nil(), "!", [], None, 1))
         ]))
 
     def test_inline_if(self, space):

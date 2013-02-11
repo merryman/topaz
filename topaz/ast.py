@@ -47,9 +47,6 @@ class Block(Node):
 
         self.stmts = stmts
 
-    def insert(self, stmt):
-        self.stmts.insert(0, stmt)
-
     def compile(self, ctx):
         for idx, stmt in enumerate(self.stmts):
             stmt.compile(ctx)
@@ -367,6 +364,15 @@ class Argument(Node):
     def __init__(self, name, defl=None):
         self.name = name
         self.defl = defl
+
+
+class Lambda(Node):
+    def __init__(self, block):
+        self.block = block
+
+    def compile(self, ctx):
+        self.block.compile(ctx)
+        ctx.emit(consts.BUILD_LAMBDA)
 
 
 class Case(Node):

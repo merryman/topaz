@@ -41,6 +41,15 @@ class TestMain(object):
         self.run(space, tmpdir, None, ruby_args=["-e", "puts 5", "-e", "puts 6"])
         out, err = capfd.readouterr()
         assert out == "5\n6\n"
+        self.run(space, tmpdir, None, ruby_args=["-eputs 'hi'"])
+        out, err = capfd.readouterr()
+        assert out == "hi\n"
+
+    def test_no_expr(self, space, tmpdir, capfd):
+        self.run(space, tmpdir, None, ruby_args=["-e"], status=1)
+        out, err = capfd.readouterr()
+        assert err == u"no code specified for -e (RuntimeError)\n"
+        assert out == ""
 
     def test___FILE__(self, space, tmpdir, capfd):
         f = self.run(space, tmpdir, "puts __FILE__")

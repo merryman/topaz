@@ -167,13 +167,17 @@ class Parser(object):
         splat = params.getsplatarg() if params is not None else None
         block_arg = params.getblockarg() if params is not None else None
 
+        extra_stmts = []
         for idx, arg in enumerate(args):
             if isinstance(arg, ast.MultiAssignable):
                 new_arg = ast.Argument(str(idx))
                 asgn = ast.MultiAssignment(arg, ast.Variable(new_arg.name, lineno))
                 args[idx] = new_arg
                 self.lexer.symtable.declare_argument(new_arg.name)
-                stmts.insert(0, ast.Statement(asgn))
+                extra_stmts.append(ast.Statement(asgn))
+
+        extra_stmts.reverse()
+        stmts = extra_stmts + stmts
 
         block = ast.Block(stmts) if stmts else ast.Nil()
         return BoxAST(ast.SendBlock(args, splat, block_arg, block))
@@ -1257,12 +1261,14 @@ class Parser(object):
 
     @pg.production("arg : UMINUS_NUM FLOAT POW arg")
     def arg_uminus_num_float_pow_arg(self, p):
-        """
-        tUMINUS_NUM tFLOAT tPOW arg {
-                    $$ = support.getOperatorCallNode(support.getOperatorCallNode($2, "**", $4, lexer.getPosition()), "-@");
-                }
-        """
-        raise NotImplementedError(p)
+        lineno = p[0].getsourcepos().lineno
+        return BoxAST(ast.Send(
+            self.new_binary_call(BoxAST(ast.ConstantFloat(float(p[1].getstr()))), p[2], p[3]).getast(),
+            "-@",
+            [],
+            None,
+            lineno
+        ))
 
     @pg.production("arg : UPLUS arg")
     def arg_uplus_arg(self, p):
@@ -1557,12 +1563,7 @@ class Parser(object):
 
     @pg.production("primary : NOT LPAREN2 rparen")
     def primary_not_paren(self, p):
-        """
-        kNOT tLPAREN2 rparen {
-                    $$ = support.getOperatorCallNode(NilImplicitNode.NIL, "!");
-                }
-        """
-        raise NotImplementedError(p)
+        return self.new_call(BoxAST(ast.Nil()), self.new_token(p[0], "!", "!"), None)
 
     @pg.production("primary : operation brace_block")
     def primary_operation_brace_block(self, p):
@@ -1578,7 +1579,7 @@ class Parser(object):
 
     @pg.production("primary : LAMBDA lambda")
     def primary_lambda(self, p):
-        return p[0]
+        return p[1]
 
     @pg.production("primary : IF expr_value then compstmt if_tail END")
     def primary_if(self, p):
@@ -2045,20 +2046,25 @@ class Parser(object):
     def bvar_f_bad_arg(self, p):
         return None
 
-    @pg.production("lambda : f_larglist lambda_body")
+    @pg.production("lambda : PRE_LAMBDA f_larglist lambda_body")
     def lambda_prod(self, p):
-        """
-        /* none */  {
-                    support.pushBlockScope();
-                    $$ = lexer.getLeftParenBegin();
-                    lexer.setLeftParenBegin(lexer.incrementParenNest());
-                } f_larglist lambda_body {
-                    $$ = new LambdaNode($2.getPosition(), $2, $3, support.getCurrentScope());
-                    support.popCurrentScope();
-                    lexer.setLeftParenBegin($<Integer>1);
-                }
-        """
-        raise NotImplementedError(p)
+        self.lexer.left_paren_begin = p[0].getint()
+        node = ast.SendBlock(
+            p[1].getargs(),
+            p[1].getsplatarg(),
+            p[1].getblockarg(),
+            ast.Block(p[2].getastlist()) if p[2] is not None else ast.Nil()
+        )
+        self.save_and_pop_scope(node)
+        return BoxAST(ast.Lambda(node))
+
+    @pg.production("PRE_LAMBDA :")
+    def pre_lambda(self, p):
+        self.push_block_scope()
+        left_paren_begin = self.lexer.left_paren_begin
+        self.lexer.paren_nest += 1
+        self.lexer.left_paren_begin = self.lexer.paren_nest
+        return BoxInt(left_paren_begin)
 
     @pg.production("f_larglist : LPAREN2 f_args opt_bv_decl RPAREN")
     def f_larglist_parens(self, p):
@@ -2950,9 +2956,10 @@ class BoxArgs(BaseBox):
             prebody = ast.Statement(ast.MultiAssignment(self.args[0], ast.Variable("2", -1)))
             if isinstance(block, ast.Nil):
                 return ast.Block([prebody])
+            elif isinstance(block, ast.Block):
+                return ast.Block([prebody] + block.stmts)
             else:
-                block.insert(prebody)
-                return block
+                raise SystemError
         else:
             return block
 
