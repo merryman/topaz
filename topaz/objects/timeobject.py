@@ -39,6 +39,36 @@ class W_TimeObject(W_Object):
     @classdef.method("initialize")
     def method_initialize(self, space):
         self._set_epoch_seconds(time.time())
+        self.time_struct = time.gmtime(self.epoch_seconds)
+        self.zone = "EST"
+        
+    @classdef.method("year")
+    def method_year(self,space):
+        return space.newint(self.time_struct.tm_year)
+
+    @classdef.method("mon")
+    def method_year(self,space):
+        return space.newint(self.time_struct.tm_mon)
+        
+    @classdef.method("day")
+    def method_year(self,space):
+        return space.newint(self.time_struct.tm_day)
+
+    @classdef.method("hour")
+    def method_year(self,space):
+        return space.newint(self.time_struct.tm_hour)
+
+    @classdef.method("min")
+    def method_year(self,space):
+        return space.newint(self.time_struct.tm_min)
+        
+    @classdef.method("sec")
+    def method_year(self,space):
+        return space.newint(self.time_struct.tm_sec)
+    
+    @classdef.method("zone")
+    def method_zone(self, space):
+        return space.newstr_fromstr(self.zone)
 
     @classdef.method("to_f")
     def method_to_f(self, space):
@@ -52,6 +82,19 @@ class W_TimeObject(W_Object):
     def method_sub(self, space, w_other):
         assert isinstance(w_other, W_TimeObject)
         return space.newfloat(self.epoch_seconds - w_other.epoch_seconds)
+
+    @classdef.method("utc")
+    @classdef.method("gmtime")
+    def method_utc(self, space):
+        self.zone = "UTC"
+        self.time_struct = time.gmtime(self.epoch_seconds)
+        return self
+
+    @classdef.method("utc?")
+    @classdef.method("gmt?")
+    def method_utcp(self, space):
+        return space.newbool(self.zone is "UTC")
+
 
     def _set_epoch_seconds(self, timestamp):
         self.epoch_seconds = timestamp
